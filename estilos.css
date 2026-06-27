@@ -1,0 +1,441 @@
+/* ============================================================
+   Simulador Puerto de Nueva Orleans — Hoja de estilos
+   ============================================================ */
+
+/* --- Paleta y tokens reutilizables --- */
+:root {
+  --color-llegadas:  #3B82F6;
+  --color-descargas: #10B981;
+  --color-retrasos:  #EF4444;
+
+  --acento:          #2563EB;
+  --acento-suave:    rgba(37, 99, 235, .12);
+  --radio:           14px;
+}
+
+/* Modo oscuro: superficies y texto más elegantes (azul pizarra) */
+[data-bs-theme="dark"] {
+  --bs-body-bg: #0E1525;
+  --bs-body-color: #D5DCE8;
+  --bs-secondary-color: #93A1B8;
+  --bs-emphasis-color: #F3F6FC;
+  --bs-border-color: rgba(148, 163, 184, .16);
+  --superficie: #161D2E;
+  --superficie-2: #1C2438;
+}
+
+[data-bs-theme="light"] {
+  --bs-body-bg: #F4F6FB;
+  --bs-body-color: #2B3548;
+  --bs-secondary-color: #64748B;
+  --bs-emphasis-color: #111827;
+  --bs-border-color: rgba(15, 23, 42, .10);
+  --superficie: #FFFFFF;
+  --superficie-2: #F8FAFC;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 100% -10%, var(--acento-suave), transparent 60%),
+    var(--bs-body-bg);
+  min-height: 100vh;
+  font-feature-settings: "tnum" 1;
+}
+
+strong { color: var(--bs-emphasis-color); }
+
+/* ============================================================
+   Navbar
+   ============================================================ */
+.app-navbar {
+  background: color-mix(in srgb, var(--bs-body-bg) 78%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.navbar-brand .navbar-brand-sub {
+  font-size: .68rem;
+  font-weight: 400;
+  color: var(--bs-secondary-color);
+  letter-spacing: .02em;
+}
+
+.app-navbar .nav-link {
+  font-size: .9rem;
+  font-weight: 500;
+  color: var(--bs-secondary-color);
+  border-radius: 8px;
+  padding: .35rem .8rem;
+  transition: color .15s ease, background .15s ease;
+}
+
+.app-navbar .nav-link:hover,
+.app-navbar .nav-link:focus {
+  color: var(--bs-emphasis-color);
+  background: var(--acento-suave);
+}
+
+/* ============================================================
+   Secciones y tarjetas
+   ============================================================ */
+.seccion {
+  scroll-margin-top: 84px;
+  margin-bottom: 2.5rem;
+}
+
+.seccion-titulo {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.seccion-icon { font-size: 1.05em; }
+
+.seccion-card {
+  background: var(--superficie);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--radio);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 24px rgba(2, 6, 23, .06);
+}
+
+.seccion-header {
+  background: transparent;
+  border-bottom: 1px solid var(--bs-border-color);
+  border-radius: var(--radio) var(--radio) 0 0 !important;
+}
+
+/* Barra de controles (toolbar) */
+.toolbar-panel {
+  background: var(--superficie);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 999px;
+  padding: .45rem .9rem;
+  box-shadow: 0 4px 14px rgba(2, 6, 23, .06);
+}
+
+.input-dias { width: 80px; }
+
+/* ============================================================
+   Enunciado del problema
+   ============================================================ */
+.enunciado-seccion { margin-bottom: 1.5rem; }
+.enunciado-seccion:last-child { margin-bottom: 0; }
+
+.enunciado-titulo {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--acento);
+  margin-bottom: .55rem;
+}
+
+.enunciado-seccion p {
+  text-align: justify;
+  line-height: 1.65;
+  color: var(--bs-body-color);
+}
+
+.enunciado-reglas {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+
+.enunciado-reglas li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: .55rem;
+  line-height: 1.55;
+}
+
+.enunciado-reglas li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .5em;
+  width: .5rem;
+  height: .5rem;
+  border-radius: 50%;
+  background: var(--acento);
+}
+
+/* ============================================================
+   Tablas de distribución (elegantes, sin bordes pesados)
+   ============================================================ */
+.tabla-dist {
+  --bs-table-bg: transparent;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.tabla-dist thead th {
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-weight: 600;
+  color: var(--bs-secondary-color);
+  background: var(--superficie-2);
+  border-bottom: 1px solid var(--bs-border-color);
+  padding: .6rem .75rem;
+  text-align: center;
+}
+
+.tabla-dist tbody td {
+  text-align: center;
+  vertical-align: middle;
+  padding: .55rem .75rem;
+  border-bottom: 1px solid var(--bs-border-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla-dist tbody td:first-child {
+  font-weight: 700;
+  color: var(--bs-emphasis-color);
+}
+
+.tabla-dist tbody tr:last-child td { border-bottom: 0; }
+.tabla-dist tbody tr:hover td { background: var(--acento-suave); }
+
+/* Píldora para los intervalos de números aleatorios */
+.rango-pill {
+  display: inline-block;
+  font-size: .76rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding: .12rem .55rem;
+  border-radius: 999px;
+  color: var(--acento);
+  background: var(--acento-suave);
+}
+
+/* ============================================================
+   Tabla de detalle día por día
+   ============================================================ */
+.tabla-scroll {
+  max-height: 460px;
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 1px solid var(--bs-border-color);
+}
+
+.tabla-detalle {
+  --bs-table-bg: transparent;
+  margin-bottom: 0;
+}
+
+.tabla-detalle thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-size: .68rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-weight: 600;
+  color: var(--bs-secondary-color);
+  background: var(--superficie-2);
+  border-bottom: 2px solid var(--bs-border-color);
+  padding: .55rem .6rem;
+  white-space: nowrap;
+}
+
+.tabla-detalle tbody td {
+  padding: .4rem .6rem;
+  border-bottom: 1px solid var(--bs-border-color);
+  font-variant-numeric: tabular-nums;
+  color: var(--bs-body-color);
+}
+
+.tabla-detalle tbody td:first-child {
+  font-weight: 600;
+  color: var(--bs-emphasis-color);
+}
+
+.tabla-detalle tbody tr:hover td { background: var(--acento-suave); }
+
+/* ============================================================
+   Tooltips de las tarjetas de métricas
+   ============================================================ */
+.tip-card { position: relative; cursor: default; }
+
+.tip-card::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0B1220;
+  color: #fff;
+  padding: 6px 11px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s ease;
+  z-index: 9999;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+}
+
+.tip-card:hover::after { opacity: 1; }
+
+/* Tarjetas de métricas con realce sutil al pasar el mouse */
+.tip-card.card {
+  background: var(--superficie);
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--radio);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.tip-card.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, .12);
+}
+
+/* ============================================================
+   Glosario (badges + texto)
+   ============================================================ */
+#glosario-sec .text-muted { color: var(--bs-secondary-color) !important; }
+
+#glosario-sec .badge {
+  font-weight: 600;
+  padding: .4rem .6rem;
+  border-radius: 8px;
+}
+
+/* ============================================================
+   Interruptores de series del gráfico
+   ============================================================ */
+.serie-llegadas {
+  background-color: var(--color-llegadas);
+  border-color: var(--color-llegadas);
+}
+
+.serie-descargas {
+  background-color: var(--color-descargas);
+  border-color: var(--color-descargas);
+}
+
+.serie-retrasos {
+  background-color: var(--color-retrasos);
+  border-color: var(--color-retrasos);
+}
+
+.label-llegadas  { color: var(--color-llegadas);  font-weight: 600; }
+.label-descargas { color: var(--color-descargas); font-weight: 600; }
+.label-retrasos  { color: var(--color-retrasos);  font-weight: 600; }
+
+/* ============================================================
+   Gráfico
+   ============================================================ */
+.chart-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+#chartWrapper {
+  position: relative;
+  height: 260px;
+  min-width: 100%;
+}
+
+/* ============================================================
+   Conclusiones de la simulación
+   ============================================================ */
+#conclusiones-sec .conclusion-card {
+  border-left: 4px solid transparent;
+  border-radius: 10px;
+  background: rgba(55, 138, 221, 0.06);
+  padding: 1rem 1.1rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-bs-theme="dark"] #conclusiones-sec .conclusion-card {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+#conclusiones-sec .conclusion-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  background: radial-gradient(circle at 20% 50%, rgba(55, 138, 221, 0.08), transparent 70%);
+  pointer-events: none;
+}
+
+#conclusiones-sec .conclusion-card:hover::before { opacity: 1; }
+
+#conclusiones-sec .conclusion-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+#conclusiones-sec .conclusion-card.c-green { border-left-color: #1D9E75; }
+#conclusiones-sec .conclusion-card.c-blue  { border-left-color: #378ADD; }
+#conclusiones-sec .conclusion-card.c-red   { border-left-color: #E24B4A; }
+#conclusiones-sec .conclusion-card.c-amber { border-left-color: #F59E0B; }
+
+
+#conclusiones-sec .concl-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+#conclusiones-sec .concl-body {
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+/* KPI pills inline */
+#conclusiones-sec .kpi-pill {
+  display: inline-block;
+  padding: 0.1em 0.5em;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.82em;
+  background: rgba(55, 138, 221, 0.13);
+  color: #378ADD;
+}
+
+[data-bs-theme="dark"] #conclusiones-sec .kpi-pill {
+  background: rgba(55, 138, 221, 0.22);
+}
+
+#conclusiones-sec .kpi-pill.green { background: rgba(29, 158, 117, 0.13); color: #1D9E75; }
+#conclusiones-sec .kpi-pill.red   { background: rgba(226, 75, 74, 0.13);  color: #E24B4A; }
+#conclusiones-sec .kpi-pill.amber { background: rgba(245, 158, 11, 0.13); color: #D97706; }
+
+[data-bs-theme="dark"] #conclusiones-sec .kpi-pill.green { background: rgba(29, 158, 117, 0.22); }
+[data-bs-theme="dark"] #conclusiones-sec .kpi-pill.red   { background: rgba(226, 75, 74, 0.22); }
+[data-bs-theme="dark"] #conclusiones-sec .kpi-pill.amber { background: rgba(245, 158, 11, 0.22); }
+
+/* Verdict banner */
+#conclusiones-sec .verdict-banner {
+  border-radius: 10px;
+  padding: 0.9rem 1.2rem;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  border: 1px solid rgba(55, 138, 221, 0.25);
+  background: linear-gradient(135deg, rgba(55, 138, 221, 0.07) 0%, rgba(29, 158, 117, 0.05) 100%);
+}
+
+[data-bs-theme="dark"] #conclusiones-sec .verdict-banner {
+  background: linear-gradient(135deg, rgba(55, 138, 221, 0.12) 0%, rgba(29, 158, 117, 0.08) 100%);
+  border-color: rgba(55, 138, 221, 0.35);
+}
+
+/* Placeholder (before first simulation run) */
+#concl-placeholder {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--bs-secondary-color);
+  font-size: 0.88rem;
+}

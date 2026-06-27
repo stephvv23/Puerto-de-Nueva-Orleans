@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulador Puerto de Nueva Orleans</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="estilos.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-lg sticky-top app-navbar">
+    <div class="container">
+      <a class="navbar-brand d-flex flex-column lh-1" href="#inicio">
+        <span class="fw-semibold">⚓ Puerto de Nueva Orleans</span>
+        <small class="navbar-brand-sub">Simulación de colas — Render Cap. 14</small>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+        aria-controls="navMenu" aria-expanded="false" aria-label="Alternar navegación">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="#enunciado-sec">Enunciado</a></li>
+          <li class="nav-item"><a class="nav-link" href="#distribuciones-sec">Distribuciones</a></li>
+          <li class="nav-item"><a class="nav-link" href="#resultados-sec">Resultados</a></li>
+          <li class="nav-item"><a class="nav-link" href="#detalle-sec">Detalle</a></li>
+          <li class="nav-item"><a class="nav-link" href="#conclusiones-sec">Conclusiones</a></li>
+          <li class="nav-item"><a class="nav-link" href="#glosario-sec">Glosario</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-4" id="inicio">
+
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+      <div>
+        <h4 class="mb-1 fw-bold">Simulador de descarga de barcazas</h4>
+        <p class="text-secondary mb-0">Ajusta los parámetros y ejecuta la simulación día por día.</p>
+      </div>
+      <div class="d-flex align-items-center gap-3 flex-wrap toolbar-panel">
+        <div class="form-check form-switch mb-0 d-flex align-items-center gap-2">
+          <input class="form-check-input" type="checkbox" id="sw-aleatorio" checked>
+          <label class="form-check-label small" for="sw-aleatorio" id="lbl-aleatorio">Aleatorio</label>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <label for="diasInput" class="form-label mb-0 small">Días:</label>
+          <input type="number" id="diasInput" class="form-control form-control-sm input-dias" min="1" max="9999"
+            value="200">
+        </div>
+        <button class="btn btn-primary btn-sm px-3" onclick="correrSimulacion()">Simular ↗</button>
+        <button class="btn btn-outline-secondary btn-sm" id="themeToggle" onclick="toggleTheme()"
+          title="Cambiar tema">☀</button>
+      </div>
+    </div>
+
+    <section id="enunciado-sec" class="seccion">
+      <div class="card seccion-card mb-4">
+        <div class="card-header seccion-header d-flex justify-content-between align-items-center" role="button"
+          data-bs-toggle="collapse" data-bs-target="#enunciado" aria-expanded="true" aria-controls="enunciado">
+          <h6 class="mb-0 fw-semibold"><span class="seccion-icon"></span> Enunciado del problema</h6>
+          <span class="small text-secondary">mostrar / ocultar</span>
+        </div>
+        <div id="enunciado" class="collapse show">
+          <div class="card-body">
+
+            <div class="enunciado-seccion">
+              <div class="enunciado-titulo">Contexto</div>
+              <p class="mb-0">
+                Las barcazas con carga completa llegan en la noche a Nueva Orleans, después de sus largos
+                viajes por el río Mississippi desde las ciudades industriales del medio oeste. El número de
+                barcazas que atracan en una noche cualquiera va de <strong>0 a 5</strong>. El superintendente
+                del muelle desea cuantificar los retrasos y los costos asociados antes de solicitar brigadas
+                de descarga adicionales al controlador del puerto.
+              </p>
+            </div>
+
+            <div class="enunciado-seccion">
+              <div class="enunciado-titulo">Reglas de operación</div>
+              <ul class="enunciado-reglas">
+                <li>
+                  Las barcazas se descargan según la política de <strong>primero en entrar, primero en salir
+                    (FIFO)</strong>.
+                </li>
+                <li>
+                  Una barcaza que no se descarga el día que llega debe <strong>esperar al día siguiente</strong>
+                  (se contabiliza como retraso).
+                </li>
+                <li>
+                  Amarrar una barcaza al muelle es costoso: <em>“¡el tiempo es dinero!”</em>, recuerdan los
+                  dueños de la línea de barcazas. Por ello se busca minimizar los retrasos.
+                </li>
+              </ul>
+            </div>
+
+            <div class="enunciado-seccion">
+              <div class="enunciado-titulo">Objetivo del estudio</div>
+              <p class="mb-0">
+                Una simulación de <strong>100 días</strong> sería ideal, pero para ilustrar el método el
+                superintendente comienza con un análisis más corto de <strong>15 días</strong>. Los números
+                aleatorios se obtienen de la fila superior de la tabla 14.4 para generar las tasas de llegadas
+                diarias, y de la segunda fila para las tasas de descarga. Este simulador permite reproducir el
+                estudio día por día y extenderlo a la cantidad de días que se desee.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="distribuciones-sec" class="seccion">
+      <h5 class="seccion-titulo"><span class="seccion-icon">🎲</span> Distribuciones de probabilidad</h5>
+      <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-6">
+          <div class="card seccion-card h-100">
+            <div class="card-body">
+              <div class="enunciado-titulo">Tabla 14.9 — Llegadas diarias</div>
+              <p class="small text-secondary mb-3">
+                Probabilidad, probabilidad acumulada e intervalo de números aleatorios para cada cantidad de
+                barcazas que llegan en la noche.
+              </p>
+              <div class="table-responsive">
+                <table class="table tabla-dist mb-0">
+                  <thead>
+                    <tr>
+                      <th>Llegadas</th>
+                      <th>Prob.</th>
+                      <th>Acum.</th>
+                      <th>Intervalo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>0</td>
+                      <td>0.13</td>
+                      <td>0.13</td>
+                      <td><span class="rango-pill">01 – 13</span></td>
+                    </tr>
+                    <tr>
+                      <td>1</td>
+                      <td>0.17</td>
+                      <td>0.30</td>
+                      <td><span class="rango-pill">14 – 30</span></td>
+                    </tr>
+                    <tr>
+                      <td>2</td>
+                      <td>0.15</td>
+                      <td>0.45</td>
+                      <td><span class="rango-pill">31 – 45</span></td>
+                    </tr>
+                    <tr>
+                      <td>3</td>
+                      <td>0.25</td>
+                      <td>0.70</td>
+                      <td><span class="rango-pill">46 – 70</span></td>
+                    </tr>
+                    <tr>
+                      <td>4</td>
+                      <td>0.20</td>
+                      <td>0.90</td>
+                      <td><span class="rango-pill">71 – 90</span></td>
+                    </tr>
+                    <tr>
+                      <td>5</td>
+                      <td>0.10</td>
+                      <td>1.00</td>
+                      <td><span class="rango-pill">91 – 100</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-6">
+          <div class="card seccion-card h-100">
+            <div class="card-body">
+              <div class="enunciado-titulo">Tabla 14.10 — Tasa de descarga diaria</div>
+              <p class="small text-secondary mb-3">
+                Debido a la naturaleza de las cargas, la capacidad de descarga también varía de un día a otro
+                según esta distribución de probabilidad.
+              </p>
+              <div class="table-responsive">
+                <table class="table tabla-dist mb-0">
+                  <thead>
+                    <tr>
+                      <th>Descargas</th>
+                      <th>Prob.</th>
+                      <th>Acum.</th>
+                      <th>Intervalo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>1</td>
+                      <td>0.05</td>
+                      <td>0.05</td>
+                      <td><span class="rango-pill">01 – 05</span></td>
+                    </tr>
+                    <tr>
+                      <td>2</td>
+                      <td>0.15</td>
+                      <td>0.20</td>
+                      <td><span class="rango-pill">06 – 20</span></td>
+                    </tr>
+                    <tr>
+                      <td>3</td>
+                      <td>0.50</td>
+                      <td>0.70</td>
+                      <td><span class="rango-pill">21 – 70</span></td>
+                    </tr>
+                    <tr>
+                      <td>4</td>
+                      <td>0.20</td>
+                      <td>0.90</td>
+                      <td><span class="rango-pill">71 – 90</span></td>
+                    </tr>
+                    <tr>
+                      <td>5</td>
+                      <td>0.10</td>
+                      <td>1.00</td>
+                      <td><span class="rango-pill">91 – 100</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="resultados-sec" class="seccion">
+      <h5 class="seccion-titulo"><span class="seccion-icon">📊</span> Resultados de la simulación</h5>
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="card h-100 tip-card" id="card-dias">
+            <div class="card-body p-3">
+              <div class="text-muted small mb-1">Días simulados</div>
+              <div class="fs-4 fw-semibold" id="m-dias">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="card h-100 tip-card" id="card-llegadas">
+            <div class="card-body p-3">
+              <div class="text-muted small mb-1">Llegadas prom./día</div>
+              <div class="fs-4 fw-semibold" id="m-llegadas">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="card h-100 tip-card" id="card-descargas">
+            <div class="card-body p-3">
+              <div class="text-muted small mb-1">Descargas prom./día</div>
+              <div class="fs-4 fw-semibold" id="m-descargas">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="card h-100 tip-card" id="card-retrasos">
+            <div class="card-body p-3">
+              <div class="text-muted small mb-1">Retrasos prom./día</div>
+              <div class="fs-4 fw-semibold text-danger" id="m-retrasos">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="card h-100 tip-card" id="card-total-ll">
+            <div class="card-body p-3">
+              <div class="text-muted small mb-1">Total barcazas llegadas</div>
+              <div class="fs-4 fw-semibold" id="m-total-ll">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="card h-100 tip-card" id="card-total-ret">
+            <div class="card-body p-3">
+              <div class="text-muted small mb-1">Total retrasos acum.</div>
+              <div class="fs-4 fw-semibold text-danger" id="m-total-ret">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="card h-100 tip-card" id="card-ingreso">
+            <div class="card-body p-3">
+              <div class="text-muted small mb-1">Ingreso prom./día</div>
+              <div class="fs-4 fw-semibold text-success" id="m-ingreso">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="card h-100 tip-card" id="card-costo">
+            <div class="card-body p-3">
+              <div class="text-muted small mb-1">Costo prom./día</div>
+              <div class="fs-4 fw-semibold text-warning" id="m-costo">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="card h-100 tip-card" id="card-utilidad">
+            <div class="card-body p-3">
+              <div class="text-muted small mb-1">Utilidad neta prom./día</div>
+              <div class="fs-4 fw-semibold" id="m-utilidad">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card seccion-card mb-4">
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-3 mb-3 align-items-center">
+            <span class="small text-secondary me-1">Series:</span>
+            <div class="form-check form-switch mb-0 d-flex align-items-center gap-2">
+              <input class="form-check-input serie-llegadas" type="checkbox" id="sw-llegadas" checked
+                onchange="toggleSerie(0, this.checked)">
+              <label class="form-check-label small label-llegadas" for="sw-llegadas">Llegadas</label>
+            </div>
+            <div class="form-check form-switch mb-0 d-flex align-items-center gap-2">
+              <input class="form-check-input serie-descargas" type="checkbox" id="sw-descargas" checked
+                onchange="toggleSerie(1, this.checked)">
+              <label class="form-check-label small label-descargas" for="sw-descargas">Descargas</label>
+            </div>
+            <div class="form-check form-switch mb-0 d-flex align-items-center gap-2">
+              <input class="form-check-input serie-retrasos" type="checkbox" id="sw-retrasos" checked
+                onchange="toggleSerie(2, this.checked)">
+              <label class="form-check-label small label-retrasos" for="sw-retrasos">Retrasos</label>
+            </div>
+          </div>
+          <div class="chart-scroll">
+            <div id="chartWrapper">
+              <canvas id="chartPrincipal" aria-label="Gráfico de llegadas, descargas y retrasos por día"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="detalle-sec" class="seccion">
+      <h5 class="seccion-titulo"><span class="seccion-icon">📅</span> Detalle por día</h5>
+      <div class="card seccion-card">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 fw-semibold">Resultados día a día <span class="text-secondary fw-normal small"
+                id="tabla-subtitulo"></span></h6>
+          </div>
+          <div class="tabla-scroll">
+            <table class="table table-hover mb-0 small tabla-detalle" id="tablaDatos">
+              <thead>
+                <tr>
+                  <th>Día</th>
+                  <th class="text-end">Retrasos ant.</th>
+                  <th class="text-end">N° aleat.</th>
+                  <th class="text-end">Llegadas</th>
+                  <th class="text-end">Total descargar</th>
+                  <th class="text-end">N° aleat.</th>
+                  <th class="text-end">Descargas</th>
+                  <th class="text-end">Retraso</th>
+                  <th class="text-end">Ociosa</th>
+                  <th class="text-end">Utilidad</th>
+                </tr>
+              </thead>
+              <tbody id="tablaBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!--  CONCLUSIONES DE LA SIMULACIÓN                            -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <section id="conclusiones-sec" class="seccion">
+      <h5 class="seccion-titulo"><span class="seccion-icon">🔍</span> Conclusiones de la simulación</h5>
+      <div class="card seccion-card">
+        <div class="card-header seccion-header d-flex justify-content-between align-items-center" role="button"
+          data-bs-toggle="collapse" data-bs-target="#concl-body" aria-expanded="true" aria-controls="concl-body">
+          <h6 class="mb-0 fw-semibold">Análisis ejecutivo de resultados <span class="text-secondary fw-normal small"
+              id="concl-subtitulo"></span></h6>
+          <span class="small text-secondary">mostrar / ocultar</span>
+        </div>
+        <div id="concl-body" class="collapse show">
+          <div class="card-body p-3" id="conclusiones-contenido">
+            <div id="concl-placeholder">⚙️ Ejecuta la simulación para generar el análisis automático.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="glosario-sec" class="seccion">
+
+      <h5 class="seccion-titulo"><span class="seccion-icon">📖</span> Glosario de columnas</h5>
+      <div class="card seccion-card">
+        <div class="card-body p-3">
+          <div class="row g-2 small">
+            <div class="col-12 col-md-6 col-lg-3">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="badge bg-secondary text-nowrap mt-1">Día</span>
+                <span class="text-muted">Número de día simulado dentro del período de análisis.</span>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="badge bg-secondary text-nowrap mt-1">Retrasos ant.</span>
+                <span class="text-muted">Barcazas que quedaron sin descargar el día anterior y se arrastran a este
+                  día.</span>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="badge bg-secondary text-nowrap mt-1">N° aleat. (llegadas)</span>
+                <span class="text-muted">Número aleatorio (1–100) usado para determinar cuántas barcazas llegan ese día
+                  según la distribución de llegadas.</span>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="badge bg-secondary text-nowrap mt-1">Llegadas</span>
+                <span class="text-muted">Cantidad de barcazas que arriban al puerto ese día, obtenida al mapear el
+                  número aleatorio a la distribución de probabilidad de llegadas.</span>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="badge bg-primary text-nowrap mt-1">Total descargar</span>
+                <span class="text-muted">Total de barcazas pendientes de descarga: retrasos del día anterior más las
+                  llegadas del día actual.</span>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="badge bg-secondary text-nowrap mt-1">N° aleat. (descargas)</span>
+                <span class="text-muted">Número aleatorio (1–100) usado para determinar la capacidad de descarga del
+                  puerto ese día según su distribución.</span>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="badge bg-success text-nowrap mt-1">Descargas</span>
+                <span class="text-muted">Cantidad de barcazas efectivamente descargadas ese día. Nunca supera el total
+                  pendiente ni la capacidad máxima del puerto.</span>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="badge bg-danger text-nowrap mt-1">Retraso</span>
+                <span class="text-muted">Barcazas que no pudieron descargarse ese día (Total descargar − Descargas). Se
+                  trasladan como retraso al día siguiente.</span>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="badge bg-warning text-nowrap mt-1">Ociosa</span>
+                <span class="text-muted">Capacidad de descarga asignada ese día que no se utilizó por falta de barcazas
+                  pendientes (Cap − Total descargar, si es positivo).</span>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+              <div class="d-flex gap-2 align-items-start">
+                <span class="badge bg-info text-nowrap mt-1">Utilidad</span>
+                <span class="text-muted">Resultado financiero neto del día: Ingreso por descargas menos costo fijo,
+                  costo de retraso y costo de capacidad ociosa.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+    </section>
+
+    <footer class="text-center text-secondary small py-4 mt-2">
+      Simulación Montecarlo de colas · Puerto de Nueva Orleans · Render, <em>Métodos cuantitativos</em>, Cap. 14
+    </footer>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script>
+    const llegadasDist = [
+      { val: 0, min: 1, max: 13 },
+      { val: 1, min: 14, max: 30 },
+      { val: 2, min: 31, max: 45 },
+      { val: 3, min: 46, max: 70 },
+      { val: 4, min: 71, max: 90 },
+      { val: 5, min: 91, max: 100 }
+    ];
+    const descargasDist = [
+      { val: 1, min: 1, max: 5 },
+      { val: 2, min: 6, max: 20 },
+      { val: 3, min: 21, max: 70 },
+      { val: 4, min: 71, max: 90 },
+      { val: 5, min: 91, max: 100 }
+    ];
+
+    // === Parámetros financieros ===
+    const I_DESCARGA = 500;   // Ingreso por barcaza descargada ($)
+    const C_FIJO = 800;   // Costo fijo diario de operación ($)
+    const C_RETRASO = 150;   // Costo de retraso por barcaza pendiente ($)
+    const C_OCIOSA = 100;   // Costo por unidad de capacidad ociosa ($)
+
+    // 200 números preseteados (tabla de números aleatorios — Taha, Cap. 14)
+    const presetRN1 = [
+      52, 37, 82, 69, 98, 96, 33, 50, 88, 90, 24, 80, 44, 39, 54, 21, 69, 48, 63, 75,
+      12, 56, 94, 7, 61, 83, 29, 71, 35, 58, 14, 92, 47, 73, 19, 85, 62, 28, 77, 43,
+      3, 91, 55, 38, 78, 16, 67, 84, 26, 99, 41, 72, 11, 87, 53, 34, 76, 22, 64, 95,
+      8, 45, 70, 31, 89, 18, 57, 79, 42, 100, 27, 66, 93, 15, 49, 81, 36, 74, 23, 60,
+      97, 13, 51, 86, 32, 68, 20, 46, 78, 59, 4, 73, 40, 88, 17, 62, 25, 76, 10, 84,
+      65, 30, 92, 48, 71, 38, 55, 83, 19, 97, 44, 67, 26, 89, 52, 14, 79, 37, 61, 96,
+      6, 72, 43, 85, 28, 56, 91, 33, 74, 18, 47, 82, 23, 63, 99, 35, 70, 15, 58, 87,
+      9, 76, 41, 66, 24, 93, 50, 80, 12, 68, 39, 77, 21, 54, 88, 31, 60, 95, 16, 73,
+      45, 86, 27, 64, 100, 42, 57, 78, 11, 83, 36, 69, 22, 48, 90, 53, 75, 34, 62, 97,
+      8, 71, 29, 55, 84, 19, 46, 87, 32, 66, 13, 79, 44, 61, 98, 25, 53, 76, 40, 89
+    ];
+    const presetRN2 = [
+      6, 63, 57, 94, 52, 69, 32, 30, 48, 1, 58, 21, 83, 17, 73, 68, 74, 81, 2, 45,
+      88, 36, 12, 67, 55, 23, 79, 41, 93, 15, 38, 72, 26, 84, 10, 61, 47, 90, 19, 53,
+      4, 77, 33, 65, 28, 86, 14, 59, 96, 42, 70, 25, 80, 37, 62, 98, 18, 50, 75, 9,
+      44, 89, 31, 56, 91, 23, 66, 3, 78, 48, 85, 16, 60, 95, 29, 71, 40, 87, 11, 53,
+      76, 22, 64, 99, 35, 68, 82, 24, 57, 7, 92, 43, 73, 18, 49, 84, 27, 61, 96, 38,
+      55, 80, 13, 69, 34, 77, 20, 86, 46, 63, 8, 72, 29, 91, 52, 17, 74, 39, 58, 83,
+      2, 67, 44, 88, 25, 56, 93, 31, 70, 15, 47, 82, 22, 60, 97, 36, 75, 10, 51, 86,
+      28, 65, 41, 79, 4, 90, 19, 54, 88, 33, 66, 12, 76, 42, 85, 23, 59, 94, 30, 73,
+      5, 48, 81, 37, 62, 98, 16, 53, 78, 24, 69, 43, 87, 11, 57, 92, 35, 64, 99, 20,
+      71, 38, 55, 84, 26, 63, 97, 14, 50, 75, 32, 68, 9, 80, 44, 89, 21, 58, 77, 100
+    ];
+
+    function randInt() { return Math.floor(Math.random() * 100) + 1; }
+    function lookup(dist, rn) {
+      for (let d of dist) if (rn >= d.min && rn <= d.max) return d.val;
+      return dist[dist.length - 1].val;
+    }
+
+    let chartInst = null;
+
+    function setTooltip(id, text) {
+      document.getElementById(id).setAttribute('data-tip', text);
+    }
+
+    document.getElementById('sw-aleatorio').addEventListener('change', function () {
+      document.getElementById('lbl-aleatorio').textContent = this.checked ? 'Aleatorio' : 'Preseteado';
+    });
+
+    function correrSimulacion() {
+      const raw = parseInt(document.getElementById('diasInput').value);
+      const dias = (isNaN(raw) || raw < 1) ? 1 : raw;
+      const aleatorio = document.getElementById('sw-aleatorio').checked;
+
+      const resultados = [];
+      let retrasoAnt = 0;
+      let totalLlegadas = 0, totalDescargas = 0, totalRetrasos = 0;
+      let totalIngreso = 0, totalCosto = 0, totalUtilidad = 0;
+      const seriesLleg = [], seriesDes = [], seriesRet = [];
+
+      for (let d = 1; d <= dias; d++) {
+        const i = (d - 1) % presetRN1.length;
+        const rn1 = aleatorio ? randInt() : presetRN1[i];
+        const llegadas = lookup(llegadasDist, rn1);
+        const totalDescargar = retrasoAnt + llegadas;
+        const rn2 = aleatorio ? randInt() : presetRN2[i];
+        const capacidadAsignada = lookup(descargasDist, rn2); // Cap_t antes de truncar
+        let descargas = capacidadAsignada;
+        if (totalDescargar === 0) { descargas = 0; }
+        else if (descargas > totalDescargar) { descargas = totalDescargar; }
+        const retraso = Math.max(0, totalDescargar - descargas);
+
+        // --- Cálculo financiero ---
+        const ociosa = Math.max(0, capacidadAsignada - totalDescargar);
+        const ingreso = descargas * I_DESCARGA;
+        const costo = C_FIJO + (retraso * C_RETRASO) + (ociosa * C_OCIOSA);
+        const utilidad = ingreso - costo;
+
+        resultados.push({ d, retrasoAnt, rn1, llegadas, totalDescargar, rn2, descargas, retraso, ociosa, ingreso, costo, utilidad });
+        totalLlegadas += llegadas; totalDescargas += descargas; totalRetrasos += retraso;
+        totalIngreso += ingreso; totalCosto += costo; totalUtilidad += utilidad;
+        seriesLleg.push(llegadas); seriesDes.push(descargas); seriesRet.push(retraso);
+        retrasoAnt = retraso;
+      }
+
+      const picLleg = resultados.reduce((a, r) => r.llegadas > a.v ? { v: r.llegadas, d: r.d } : a, { v: -1, d: 0 });
+      const picDes = resultados.reduce((a, r) => r.descargas > a.v ? { v: r.descargas, d: r.d } : a, { v: -1, d: 0 });
+      const picRet = resultados.reduce((a, r) => r.retraso > a.v ? { v: r.retraso, d: r.d } : a, { v: -1, d: 0 });
+
+      document.getElementById('m-dias').textContent = dias;
+      document.getElementById('m-llegadas').textContent = (totalLlegadas / dias).toFixed(2);
+      document.getElementById('m-descargas').textContent = (totalDescargas / dias).toFixed(2);
+      document.getElementById('m-retrasos').textContent = (totalRetrasos / dias).toFixed(2);
+      document.getElementById('m-total-ll').textContent = totalLlegadas;
+      document.getElementById('m-total-ret').textContent = totalRetrasos;
+
+      const utilPromedio = totalUtilidad / dias;
+      document.getElementById('m-ingreso').textContent = '$' + (totalIngreso / dias).toFixed(2);
+      document.getElementById('m-costo').textContent = '$' + (totalCosto / dias).toFixed(2);
+      const utilEl = document.getElementById('m-utilidad');
+      utilEl.textContent = '$' + utilPromedio.toFixed(2);
+      utilEl.classList.remove('text-success', 'text-danger');
+      utilEl.classList.add(utilPromedio >= 0 ? 'text-success' : 'text-danger');
+
+      ['sw-llegadas', 'sw-descargas', 'sw-retrasos'].forEach(id => document.getElementById(id).checked = true);
+
+      setTooltip('card-dias', `Rango: 1 – ${dias} días`);
+      setTooltip('card-llegadas', `Pico: ${picLleg.v} barcazas (día ${picLleg.d})`);
+      setTooltip('card-descargas', `Pico: ${picDes.v} descargas (día ${picDes.d})`);
+      setTooltip('card-retrasos', `Pico: ${picRet.v} retrasadas (día ${picRet.d})`);
+      setTooltip('card-total-ll', `Pico diario: ${picLleg.v} llegadas (día ${picLleg.d})`);
+      setTooltip('card-total-ret', `Pico diario: ${picRet.v} retrasos (día ${picRet.d})`);
+      setTooltip('card-ingreso', `Ingreso total: $${totalIngreso.toFixed(2)} en ${dias} días`);
+      setTooltip('card-costo', `Costo total: $${totalCosto.toFixed(2)} en ${dias} días`);
+      setTooltip('card-utilidad', `Utilidad total: $${totalUtilidad.toFixed(2)} en ${dias} días`);
+
+      // Gráfico
+      const labels = [], dL = [], dD = [], dR = [];
+      for (let i = 0; i < dias; i++) {
+        labels.push('Día ' + (i + 1));
+        dL.push(seriesLleg[i]); dD.push(seriesDes[i]); dR.push(seriesRet[i]);
+      }
+
+      const dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+      const tickColor = dark ? '#aaa' : '#888';
+      const gridColor = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+
+      // 1 punto por día (sin paso), 20px por día
+      const anchoMin = Math.max(dias * 20, window.innerWidth);
+      const wrapper = document.getElementById('chartWrapper');
+      wrapper.style.width = anchoMin + 'px';
+
+      if (chartInst) { chartInst.destroy(); chartInst = null; }
+      const oldCanvas = document.getElementById('chartPrincipal');
+      const newCanvas = document.createElement('canvas');
+      newCanvas.id = 'chartPrincipal';
+      newCanvas.width = anchoMin;
+      newCanvas.height = 260;
+      newCanvas.style.width = anchoMin + 'px';
+      newCanvas.style.height = '260px';
+      oldCanvas.replaceWith(newCanvas);
+
+      chartInst = new Chart(newCanvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Llegadas', data: dL, borderColor: '#378ADD', backgroundColor: 'rgba(55,138,221,0.08)', borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 5, tension: 0.3, fill: false },
+            { label: 'Descargas', data: dD, borderColor: '#1D9E75', backgroundColor: 'rgba(29,158,117,0.08)', borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 5, tension: 0.3, fill: false },
+            { label: 'Retrasos', data: dR, borderColor: '#E24B4A', backgroundColor: 'rgba(226,75,74,0.08)', borderWidth: 1.5, pointRadius: 0, pointHoverRadius: 5, tension: 0.3, fill: true }
+          ]
+        },
+        options: {
+          responsive: false, maintainAspectRatio: false,
+          animation: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: items => items[0].label,
+                label: item => ` ${item.dataset.label}: ${item.parsed.y}`
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { font: { size: 10 }, maxTicksLimit: 10, color: tickColor }, grid: { display: false } },
+            y: { ticks: { font: { size: 10 }, color: tickColor }, grid: { color: gridColor }, beginAtZero: true }
+          }
+        }
+      });
+
+      // Tabla completa con todos los días
+      document.getElementById('tabla-subtitulo').textContent = `(${dias} día${dias !== 1 ? 's' : ''} — ${aleatorio ? 'números aleatorios' : 'números preseteados'})`;
+      const tbody = document.getElementById('tablaBody');
+      const rows = resultados.map(r => {
+        const cls = r.retraso > 0 ? 'text-danger fw-semibold' : '';
+        const clsU = r.utilidad >= 0 ? 'text-success' : 'text-danger';
+        return `<tr>
+      <td>${r.d}</td>
+      <td class="text-end">${r.retrasoAnt}</td>
+      <td class="text-end text-muted">${r.rn1}</td>
+      <td class="text-end">${r.llegadas}</td>
+      <td class="text-end fw-semibold">${r.totalDescargar}</td>
+      <td class="text-end text-muted">${r.rn2}</td>
+      <td class="text-end">${r.descargas}</td>
+      <td class="text-end ${cls}">${r.retraso}</td>
+      <td class="text-end">${r.ociosa}</td>
+      <td class="text-end ${clsU}">$${r.utilidad.toFixed(2)}</td>
+    </tr>`;
+      });
+      tbody.innerHTML = rows.join('');
+
+      // ── Conclusiones dinámicas ──────────────────────────────────
+      generarConclusiones({
+        dias, totalLlegadas, totalDescargas, totalRetrasos,
+        totalIngreso, totalCosto, totalUtilidad, resultados
+      });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  GENERADOR DE CONCLUSIONES AUTOMÁTICAS
+    // ══════════════════════════════════════════════════════════════
+    function generarConclusiones({ dias, totalLlegadas, totalDescargas, totalRetrasos,
+      totalIngreso, totalCosto, totalUtilidad, resultados }) {
+
+      const promLleg = totalLlegadas / dias;
+      const promDes = totalDescargas / dias;
+      const promRet = totalRetrasos / dias;
+      const promIng = totalIngreso / dias;
+      const promCosto = totalCosto / dias;
+      const promUtil = totalUtilidad / dias;
+
+      const tasaRetraso = totalLlegadas > 0 ? (totalRetrasos / totalLlegadas) * 100 : 0;
+      const eficiencia = promLleg > 0 ? (promDes / promLleg) * 100 : 100;
+      const margenOp = promIng > 0 ? (promUtil / promIng) * 100 : 0;
+      const peorDia = resultados.reduce((a, r) => r.retraso > a.retraso ? r : a, resultados[0]);
+      const diasNegativos = resultados.filter(r => r.utilidad < 0).length;
+
+      // ── Conclusión 1: Balance operativo ──────────────────────────
+      const balanceDiff = promDes - promLleg;
+      const balanceAbs = Math.abs(balanceDiff).toFixed(2);
+      let c1color, c1icon, c1label, c1text;
+      if (Math.abs(balanceDiff) < 0.1) {
+        c1color = 'c-green'; c1icon = '⚖️'; c1label = 'Balance operativo — equilibrio';
+        c1text = `El sistema operó en <strong>pleno equilibrio estocástico</strong>: la tasa promedio de
+      llegadas (<span class="kpi-pill">${promLleg.toFixed(2)} barcazas/día</span>) y la de descargas
+      (<span class="kpi-pill green">${promDes.toFixed(2)}/día</span>) son prácticamente idénticas,
+      confirmando que la capacidad instalada responde adecuadamente a la demanda histórica
+      descrita en las distribuciones empíricas de las Tablas 14.9 y 14.10.`;
+      } else if (balanceDiff > 0) {
+        c1color = 'c-green'; c1icon = '✅'; c1label = 'Balance operativo — superávit de capacidad';
+        c1text = `Las descargas promedio (<span class="kpi-pill green">${promDes.toFixed(2)}/día</span>)
+      superan a las llegadas (<span class="kpi-pill">${promLleg.toFixed(2)}/día</span>) en
+      <span class="kpi-pill green">+${balanceAbs}</span> barcazas/día, evidenciando un
+      <strong>superávit de capacidad</strong>. Si bien esto mitiga los retrasos, la brecha genera
+      capacidad ociosa sistemática que absorbe recursos sin retorno, presionando el margen neto.`;
+      } else {
+        c1color = 'c-red'; c1icon = '⚠️'; c1label = 'Balance operativo — déficit de descarga';
+        c1text = `Las llegadas promedio (<span class="kpi-pill red">${promLleg.toFixed(2)}/día</span>)
+      exceden la tasa de descarga (<span class="kpi-pill">${promDes.toFixed(2)}/día</span>) en
+      <span class="kpi-pill red">${balanceAbs}</span> barcazas/día. Este <strong>déficit estructural</strong>
+      es la causa raíz de la acumulación de retrasos y del deterioro progresivo del margen operativo.
+      De no corregirse, la congestión se intensificará en horizontes de simulación extendidos.`;
+      }
+
+      // ── Conclusión 2: Impacto de retrasos ────────────────────────
+      const c2color = tasaRetraso < 30 ? 'c-green' : tasaRetraso < 55 ? 'c-amber' : 'c-red';
+      const c2icon = tasaRetraso < 30 ? '📉' : tasaRetraso < 55 ? '📊' : '🚨';
+      const c2label = 'Presión de retrasos — impacto financiero directo';
+      const costRetrasoTotal = totalRetrasos * C_RETRASO;
+      const rPill = tasaRetraso < 30 ? 'green' : tasaRetraso < 55 ? 'amber' : 'red';
+      const c2text = `En <span class="kpi-pill">${dias} días</span> se acumularon
+    <span class="kpi-pill red">${totalRetrasos} barcazas retrasadas</span>
+    (<span class="kpi-pill amber">${promRet.toFixed(2)}/día</span>), representando el
+    <span class="kpi-pill ${rPill}">${tasaRetraso.toFixed(1)}%</span> del total de llegadas.
+    El costo directo acumulado asciende a
+    <span class="kpi-pill red">$${costRetrasoTotal.toLocaleString()}</span>
+    ($${C_RETRASO}/barcaza). El día de mayor congestión fue el <strong>Día ${peorDia.d}</strong>
+    con ${peorDia.retraso} barcazas represadas. ${tasaRetraso >= 45
+          ? 'Este nivel <strong>requiere intervención operativa inmediata</strong>.'
+          : tasaRetraso >= 25
+            ? 'El nivel es moderado; conviene monitorizarlo en simulaciones más largas.'
+            : 'El nivel es bajo; la configuración actual controla bien los rezagos.'
+        }`;
+
+      // ── Conclusión 3: Utilidad neta (Ú) ─────────────────────────
+      const c3color = promUtil >= 0 ? 'c-green' : 'c-red';
+      const c3icon = promUtil >= 300 ? '💰' : promUtil >= 0 ? '📈' : '🔴';
+      const c3label = 'Utilidad neta (Ú) — indicador de decisión ejecutiva';
+      const uTrend = promUtil >= 300
+        ? 'El margen positivo sólido <strong>valida la inversión actual</strong> y permite absorber variaciones adversas.'
+        : promUtil >= 0
+          ? 'La utilidad es positiva pero ajustada; variaciones estocásticas desfavorables pueden volverla negativa.'
+          : '<strong>La operación es deficitaria</strong>; los costos superan los ingresos bajo la configuración actual.';
+      const uPill = promUtil >= 0 ? 'green' : 'red';
+      const c3text = `La utilidad neta promedio es
+    <span class="kpi-pill ${uPill}">$${promUtil.toFixed(2)}/día</span>
+    (ingreso: <span class="kpi-pill green">$${promIng.toFixed(2)}</span> −
+     costo: <span class="kpi-pill red">$${promCosto.toFixed(2)}</span>),
+    reflejando un <strong>margen operativo del ${margenOp.toFixed(1)}%</strong>.
+    ${uTrend}
+    Se registraron <span class="kpi-pill ${diasNegativos > dias * 0.2 ? 'red' : 'amber'}">
+    ${diasNegativos} días con resultado negativo</span>
+    (${((diasNegativos / dias) * 100).toFixed(1)}% del período), parámetro clave
+    para cuantificar el riesgo operativo frente a inversiones de capital.`;
+
+      // ── Conclusión 4: Recomendación estratégica ──────────────────
+      const c4label = 'Recomendación estratégica — inversión vs. costo operativo';
+      let c4rec;
+      if (tasaRetraso >= 45) {
+        c4rec = `Con una tasa de retraso del <span class="kpi-pill red">${tasaRetraso.toFixed(1)}%</span>,
+      el análisis sugiere <strong>contratar brigadas adicionales de descarga</strong>.
+      El ahorro en costos de retraso (<span class="kpi-pill amber">$${C_RETRASO}/barcaza</span>)
+      puede superar el incremento del costo fijo (<span class="kpi-pill red">$${C_FIJO}/día</span>),
+      mejorando la utilidad neta <em>Ú</em> en simulaciones de 100 días o más, donde los
+      promedios convergen hacia su valor esperado real.`;
+      } else if (promRet < 0.5 && eficiencia > 95) {
+        c4rec = `Con retrasos mínimos (<span class="kpi-pill green">${promRet.toFixed(2)}/día</span>)
+      y eficiencia operativa del <span class="kpi-pill green">${eficiencia.toFixed(1)}%</span>,
+      se recomienda <strong>evaluar la reducción de brigadas en turno</strong>.
+      Un recorte moderado puede disminuir el costo fijo de
+      <span class="kpi-pill red">$${C_FIJO}/día</span> sin comprometer
+      significativamente el nivel de servicio.`;
+      } else {
+        c4rec = `Los indicadores operativos se encuentran dentro de rangos gestionables. Se recomienda
+      <strong>mantener la dotación actual</strong> y extender el horizonte de simulación a
+      <span class="kpi-pill">≥ 200 días</span> para confirmar la estabilidad de los promedios
+      ante la variabilidad estocástica inherente del sistema de colas portuario.`;
+      }
+
+      // ── Veredicto ejecutivo ───────────────────────────────────────
+      const verdict = promUtil >= 0
+        ? `<strong>Operación rentable.</strong> El sistema es financieramente viable con la configuración actual.
+       Los promedios de largo plazo convergen hacia un equilibrio sostenible (Ley de los Grandes Números),
+       aunque deben vigilarse los días de pico para evitar acumulaciones de retraso que erosionen el margen.`
+        : `<strong>Operación deficitaria.</strong> La configuración actual no genera suficiente ingreso para
+       cubrir los costos operativos. Se requiere revisar la estructura de costos, ampliar la capacidad de
+       descarga o renegociar los parámetros de ingreso por barcaza ($${I_DESCARGA}/descarga).`;
+
+      // ── Render ────────────────────────────────────────────────────
+      const card = (color, icon, label, body) => `
+    <div class="conclusion-card ${color} d-flex gap-3 align-items-start">
+      <div class="flex-grow-1">
+        <div class="concl-label text-muted">${label}</div>
+        <div class="concl-body">${body}</div>
+      </div>
+    </div>`;
+
+      document.getElementById('conclusiones-contenido').innerHTML = `
+    <div class="d-flex flex-column gap-3 mb-4">
+      ${card(c1color, c1icon, c1label, c1text)}
+      ${card(c2color, c2icon, c2label, c2text)}
+      ${card(c3color, c3icon, c3label, c3text)}
+      ${card('c-blue', '', c4label, c4rec)}
+    </div>
+    <div class="verdict-banner">
+      <span class="fw-semibold me-1">Veredicto ejecutivo:</span>${verdict}
+    </div>`;
+
+      document.getElementById('concl-subtitulo').textContent =
+        `(${dias} día${dias !== 1 ? 's' : ''} simulados)`;
+    }
+
+    function toggleSerie(index, visible) {
+      if (!chartInst) return;
+      chartInst.data.datasets[index].hidden = !visible;
+      chartInst.update();
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-bs-theme') === 'dark';
+      html.setAttribute('data-bs-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeToggle').textContent = isDark ? '☽' : '☀';
+      if (chartInst) correrSimulacion();
+    }
+
+    correrSimulacion();
+  </script>
+</body>
+
+</html>
